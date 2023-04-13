@@ -19,14 +19,6 @@ import { COLOURS } from "./constant";
 const MusicRoute = () => <View style={{ padding: 20 }}></View>;
 const LeftContent = (props) => <Avatar.Icon {...props} icon="folder" />;
 
-const AlbumsRoute = () => (
-  <Image
-    src={
-      "https://comtamtuonghan.vn/wp-content/uploads/2020/09/com-tam-suon-nuong-tang-1.png"
-    }
-  ></Image>
-);
-
 const formatNumber = (x) => x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 const FoodCard = ({ data }) => {
@@ -52,9 +44,9 @@ const FoodCard = ({ data }) => {
       >
         <Image
           style={{
-            width: '100%',
+            width: "100%",
             height: 190,
-            resizeMode: 'contain',
+            resizeMode: "contain",
           }}
           source={{
             uri: data.image,
@@ -68,12 +60,77 @@ const FoodCard = ({ data }) => {
     </TouchableOpacity>
   );
 };
+const OrderHistoryCard = ({ data }) => {
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("HistoryInfo", { productID: data.id })}
+      style={{
+        width: "48%",
+        width: "100%",
+        height: 50,
+      }}
+    >
+      <View>
+        <View>
+          <Text> Tháng 4</Text>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            borderBottom: "1px solid #EEEEEE",
+          }}
+        >
+          <View
+            style={{
+              justifyContent: "flex-start",
+              marginLeft: "10px",
+            }}
+          >
+            <Text
+              style={{
+                textTransform: "uppercase",
+                fontStyle: "normal",
+                fontWeight: 700,
+                fontSize: "14px",
+                lineNeight: "19px",
+              }}
+            >
+              {data.total}
+            </Text>
+            <Text> {data.createdAt}</Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-around",
+              justifyItems: "end",
+              display: "grid",
+              marginRight: "10px",
+            }}
+          >
+            <Text>{formatNumber(data.total)}</Text>
+            <Text
+              style={{
+                justifyContent: "flex-end",
+                color:
+                  "Chưa Thanh Toán" === "Chưa Thanh Toán" ? "red" : "green",
+              }}
+            >
+              Chưa Thanh Toán
+            </Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
-const RecentsRoute = () => <Text>Recents</Text>;
-
-const NotificationsRoute = () => <Text>Notifications</Text>;
 export default function App() {
   const [foods, setFoods] = React.useState([]);
+  const [hisotrys, setHistorys] = React.useState([]);
 
   React.useEffect(() => {
     const foodRef = ref(database, "Food");
@@ -87,8 +144,45 @@ export default function App() {
       setFoods(food);
     });
   }, []);
-
+  React.useEffect(() => {
+    const historyRef = ref(database, "History");
+    onValue(historyRef, (snapshot) => {
+      const data = snapshot.val();
+      const hisotry = Object.keys(data).map((key) => ({
+        id: key,
+        ...data[key],
+      }));
+      setHistorys(hisotry);
+    });
+  }, []);
   const [index, setIndex] = React.useState(0);
+
+  const HomeScreen = () => {
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-around",
+        }}
+      >
+        {foods.map((data) => {
+          return data ? <FoodCard data={data} key={data.id} /> : null;
+        })}
+      </View>
+    );
+  };
+  const OrderHistoryScreen = () => {
+    return (
+      <View style={{ width: "100%", height: 200 }}>
+        {hisotrys.map((data) => {
+          return data ? <OrderHistoryCard data={data} key={data.id} /> : null;
+        })}
+      </View>
+    );
+  };
+  const RecentsRoute = () => <Text>Recents</Text>;
+  const NotificationsRoute = () => <Text>Notifications</Text>;
   const [routes] = React.useState([
     {
       key: "home",
@@ -96,12 +190,11 @@ export default function App() {
       focusedIcon: "home",
       unfocusedIcon: "home-outline",
     },
-    { key: "albums", title: "Lịch sử đơn hàng", focusedIcon: "album" },
+    { key: "orderHistory", title: "Lịch sử đơn hàng", focusedIcon: "album" },
   ]);
-
   const renderScene = BottomNavigation.SceneMap({
-    home: MusicRoute,
-    albums: AlbumsRoute,
+    home: HomeScreen,
+    orderHistory: OrderHistoryScreen,
     recents: RecentsRoute,
     notifications: NotificationsRoute,
   });
@@ -126,20 +219,6 @@ export default function App() {
           />
         </Appbar.Header>
       </LinearGradient>
-
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "space-around",
-        }}
-      >
-        {foods.map((data) => {
-          
-          return data ? <FoodCard data={data} key={data.id} /> : null;
-        })}
-      </View>
-
       <BottomNavigation
         activeColor="#FF2B2B"
         inactiveColor="#c7c7c7"
@@ -196,4 +275,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#424965",
   },
+
+  //orderHistory Compoment
 });
