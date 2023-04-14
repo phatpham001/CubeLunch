@@ -15,11 +15,10 @@ import { Avatar, Button, Card, BottomNavigation } from "react-native-paper";
 import { getDatabase, ref, get, child, onValue } from "firebase/database";
 import { database } from "./firebase";
 import { COLOURS } from "./constant";
+import { formatNumber, forrmatMonth, formatDateString } from "./utils/helpers";
 
 const MusicRoute = () => <View style={{ padding: 20 }}></View>;
 const LeftContent = (props) => <Avatar.Icon {...props} icon="folder" />;
-
-const formatNumber = (x) => x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 const FoodCard = ({ data }) => {
   return (
@@ -63,16 +62,19 @@ const FoodCard = ({ data }) => {
 const OrderHistoryCard = ({ data }) => {
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("HistoryInfo", { productID: data.id })}
+      onPress={() => navigation.navigate("HistoryInfo", { historyID: data.id })}
       style={{
         width: "48%",
         width: "100%",
         height: 50,
+        marginBottom: "10px",
       }}
     >
       <View>
         <View>
-          <Text> Tháng 4</Text>
+          <Text style={{ marginLeft: "10px" }}>
+            {forrmatMonth(data.createdAt)}
+          </Text>
         </View>
         <View
           style={{
@@ -97,9 +99,9 @@ const OrderHistoryCard = ({ data }) => {
                 lineNeight: "19px",
               }}
             >
-              {data.total}
+              {data.detail}
             </Text>
-            <Text> {data.createdAt}</Text>
+            <Text> {formatDateString(data.createdAt)}</Text>
           </View>
           <View
             style={{
@@ -115,11 +117,11 @@ const OrderHistoryCard = ({ data }) => {
             <Text
               style={{
                 justifyContent: "flex-end",
-                color:
-                  "Chưa Thanh Toán" === "Chưa Thanh Toán" ? "red" : "green",
+                color: data.status === 1 ? "red" : "green",
+                textTransform: "uppercase",
               }}
             >
-              Chưa Thanh Toán
+              {data.status === 1 ? "Chưa Thanh Toán" : "Đã Thanh Toán"}
             </Text>
           </View>
         </View>
@@ -181,7 +183,6 @@ export default function App() {
       </View>
     );
   };
-  const RecentsRoute = () => <Text>Recents</Text>;
   const NotificationsRoute = () => <Text>Notifications</Text>;
   const [routes] = React.useState([
     {
@@ -195,7 +196,6 @@ export default function App() {
   const renderScene = BottomNavigation.SceneMap({
     home: HomeScreen,
     orderHistory: OrderHistoryScreen,
-    recents: RecentsRoute,
     notifications: NotificationsRoute,
   });
 
